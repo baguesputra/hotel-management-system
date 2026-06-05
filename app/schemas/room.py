@@ -1,9 +1,8 @@
 from uuid import UUID
 from decimal import Decimal
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel
 from app.models.room import RoomType, RoomStatus, SeasonType
-
 
 class RoomBase(BaseModel):
     room_number: str
@@ -56,3 +55,13 @@ class RoomAvailabilityQuery(BaseModel):
     check_in_date: str   # format: YYYY-MM-DD
     check_out_date: str  # format: YYYY-MM-DD
     room_type: RoomType | None = None
+
+class PriceEstimationResponse(BaseModel):
+    room_id: UUID
+    room_number: str
+    room_type: RoomType
+    check_in_date: date
+    check_out_date: date
+    total_nights: int
+    price_per_night: Decimal
+    total_amount: Decimal

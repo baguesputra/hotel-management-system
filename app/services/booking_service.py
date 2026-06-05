@@ -10,6 +10,7 @@ from app.models.booking import Booking, BookingStatus
 from app.models.room import Room, RoomStatus
 from app.schemas.booking import BookingCreate
 from app.services.room_service import room_service
+from app.services.pricing_service import pricing_service
 
 
 class BookingService:
@@ -19,7 +20,21 @@ class BookingService:
         return f"HTL-{suffix}"
 
     async def create(self, db: AsyncSession, data: BookingCreate) -> Booking:
-        # cek availability
+        # SELECT FOR UPDATE — lock row kamar selama proses booking
+        # mencegah dua request booking kamar yang sama secara bersamaan
+        room_result = await db.execute(
+            select(Room)
+            .where(Room.id == data.room_id, Room.is_active == True)
+            .with_for_update()
+        )
+        room = room_result.scalar_one_or_none()
+        if not room:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Kamar tidak ditemukan"
+            )
+
+        # cek availability setelah lock diperoleh
         available_rooms = await room_service.get_available_rooms(
             db, data.check_in_date, data.check_out_date
         )
@@ -31,11 +46,12 @@ class BookingService:
                 detail="Kamar tidak tersedia di tanggal tersebut"
             )
 
-        # ambil data room untuk hitung harga
-        room = await room_service.get_by_id(db, data.room_id)
+        # hitung harga dengan pricing engine
+        price_per_night, total_amount = await pricing_service.calculate_total(
+            db, room, data.check_in_date, data.check_out_date
+        )
+
         total_nights = (data.check_out_date - data.check_in_date).days
-        price_per_night = Decimal(str(room.base_price))
-        total_amount = price_per_night * total_nights
 
         booking = Booking(
             booking_code=self._generate_booking_code(),

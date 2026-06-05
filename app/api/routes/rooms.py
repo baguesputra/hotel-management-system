@@ -9,6 +9,8 @@ from app.schemas.room import (
 )
 from app.models.room import RoomType
 from app.services.room_service import room_service
+from app.services.pricing_service import pricing_service
+from app.schemas.room import PriceEstimationResponse
 
 router = APIRouter(prefix="/rooms", tags=["Rooms"])
 
@@ -53,3 +55,27 @@ async def add_room_pricing(
     db: AsyncSession = Depends(get_db)
 ):
     return await room_service.add_pricing(db, room_id, data)
+
+@router.get("/{room_id}/price-estimation", response_model=PriceEstimationResponse)
+async def get_price_estimation(
+    room_id: UUID,
+    check_in_date: date = Query(...),
+    check_out_date: date = Query(...),
+    db: AsyncSession = Depends(get_db)
+):
+    room = await room_service.get_by_id(db, room_id)
+    price_per_night, total_amount = await pricing_service.calculate_total(
+        db, room, check_in_date, check_out_date
+    )
+    total_nights = (check_out_date - check_in_date).days
+
+    return PriceEstimationResponse(
+        room_id=room.id,
+        room_number=room.room_number,
+        room_type=room.room_type,
+        check_in_date=check_in_date,
+        check_out_date=check_out_date,
+        total_nights=total_nights,
+        price_per_night=price_per_night,
+        total_amount=total_amount,
+    )
