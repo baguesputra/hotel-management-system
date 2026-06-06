@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.core.config import settings
-from app.api.routes import guests, rooms, bookings, payments, cancellations, waitlist
+from app.api.routes import guests, rooms, bookings, payments, cancellations, waitlist, jobs
 
 app = FastAPI(
     title=settings.app_name,
@@ -16,6 +16,7 @@ app.include_router(bookings.router, prefix=API_PREFIX)
 app.include_router(payments.router, prefix=API_PREFIX)
 app.include_router(cancellations.router, prefix=API_PREFIX)
 app.include_router(waitlist.router, prefix=API_PREFIX)
+app.include_router(jobs.router, prefix=API_PREFIX)
 
 
 @app.get("/health", tags=["System"])
