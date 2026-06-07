@@ -29,4 +29,20 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.send_daily_reminders",
         "schedule": crontab(hour=8, minute=0),  # setiap hari jam 08.00
     },
+    "expire-waitlist-entries-hourly": {    # ← baru
+        "task": "tasks.expire_waitlist_entries",
+        "schedule": crontab(minute=0),     # setiap jam
+    },
 }
+
+celery_app = Celery(
+    "hotel",
+    broker=settings.celery_broker_url,
+    backend=settings.celery_result_backend,
+    include=[
+        "app.tasks.sample_tasks",
+        "app.tasks.email_tasks",
+        "app.tasks.refund_tasks",    # ← baru
+        "app.tasks.waitlist_tasks",  # ← baru
+    ],
+)

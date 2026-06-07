@@ -159,3 +159,24 @@ def send_daily_reminders() -> dict:
 
     logger.info(f"Reminder terkirim: {sent_count} booking")
     return {"reminders_sent": sent_count}
+
+@celery_app.task(
+    bind=True,
+    name="tasks.send_waitlist_notification",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def send_waitlist_notification(self, notification_data: dict) -> dict:
+    """Kirim email notifikasi ke guest di waitlist."""
+    try:
+        email_service.send(
+            to_email=notification_data["guest_email"],
+            to_name=notification_data["guest_name"],
+            subject=f"Kamar Tersedia! Segera Booking",
+            template_name="waitlist_notification.html",
+            context=notification_data,
+        )
+        return {"status": "sent", "to": notification_data["guest_email"]}
+    except Exception as exc:
+        logger.error(f"Gagal kirim waitlist notification: {exc}")
+        raise self.retry(exc=exc)

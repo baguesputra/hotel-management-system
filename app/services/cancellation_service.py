@@ -9,6 +9,10 @@ from app.models.booking import Booking, BookingStatus
 from app.schemas.cancellation import CancellationCreate
 from app.tasks.email_tasks import send_refund_confirmation
 from app.models.guest import Guest
+from celery import chain
+from app.tasks.refund_tasks import process_refund
+from app.tasks.waitlist_tasks import notify_waitlist_on_cancellation
+from app.models.guest import Guest
 
 class CancellationService:
 
@@ -70,6 +74,40 @@ class CancellationService:
         # update status booking
         booking.status = BookingStatus.CANCELLED
         await db.flush()
+
+        guest_result = await db.execute(
+        select(Guest).where(Guest.id == booking.guest_id)
+        )
+        guest = guest_result.scalar_one()
+
+          guest_result = await db.execute(
+        select(Guest).where(Guest.id == booking.guest_id)
+        )
+        guest = guest_result.scalar_one()
+
+        # kirim email notifikasi cancellation langsung
+        send_refund_confirmation.delay({
+            "guest_name": guest.name,
+            "guest_email": guest.email,
+            "booking_code": booking.booking_code,
+            "reason": cancellation.reason,
+            "refund_percentage": float(cancellation.refund_percentage),
+            "refund_amount": float(cancellation.refund_amount),
+            "refund_status": cancellation.refund_status.value,
+        })
+
+        # chain: process refund → notify waitlist
+        # dijalankan berurutan, satu selesai baru berikutnya jalan
+        refund_chain = chain(
+            process_refund.s(str(cancellation.id)),
+            notify_waitlist_on_cancellation.s(
+                str(booking.room_id),
+                str(booking.check_in_date),
+                str(booking.check_out_date),
+            )
+        )
+        refund_chain.delay()
+
         await db.refresh(cancellation)
         return cancellation
 
@@ -86,30 +124,19 @@ class CancellationService:
         return cancellation
 
     async def approve_refund(self, db: AsyncSession, cancellation_id: UUID) -> Cancellation:
-        cancellation = await self.get_by_id(db, cancellation_id)
-        if cancellation.refund_status != RefundStatus.PENDING:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Refund sudah diproses sebelumnya"
-            )
-        cancellation.refund_status = RefundStatus.APPROVED
-        await db.flush()
-        guest_result = await db.execute(
-        select(Guest).where(Guest.id == booking.guest_id)
+    cancellation = await self.get_by_id(db, cancellation_id)
+    if cancellation.refund_status != RefundStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Refund sudah diproses sebelumnya"
         )
-        guest = guest_result.scalar_one()
 
-        send_refund_confirmation.delay({
-            "guest_name": guest.name,
-            "guest_email": guest.email,
-            "booking_code": booking.booking_code,
-            "reason": cancellation.reason,
-            "refund_percentage": float(cancellation.refund_percentage),
-            "refund_amount": float(cancellation.refund_amount),
-            "refund_status": cancellation.refund_status.value,
-        })
-        await db.refresh(cancellation)
-        return cancellation
+    # trigger background task — status akan diupdate oleh task
+    from app.tasks.refund_tasks import process_refund_approved
+    process_refund_approved.delay(str(cancellation_id))
+
+    await db.refresh(cancellation)
+    return cancellation
 
 
 cancellation_service = CancellationService()
