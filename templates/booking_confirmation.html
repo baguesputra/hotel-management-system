@@ -1,0 +1,39 @@
+{% extends "base_email.html" %}
+{% block content %}
+<p>Halo <strong>{{ guest_name }}</strong>,</p>
+<p>Terima kasih telah melakukan pemesanan. Berikut detail booking Anda:</p>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="label">Kode Booking</span>
+    <span class="value">{{ booking_code }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Kamar</span>
+    <span class="value">{{ room_number }} ({{ room_type }})</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Check-in</span>
+    <span class="value">{{ check_in_date }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Check-out</span>
+    <span class="value">{{ check_out_date }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Jumlah Malam</span>
+    <span class="value">{{ total_nights }} malam</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Total Pembayaran</span>
+    <span class="value">Rp {{ "{:,.0f}".format(total_amount) }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Status</span>
+    <span class="value">{{ status }}</span>
+  </div>
+</div>
+
+<p>Silakan lakukan pembayaran untuk mengkonfirmasi booking Anda.</p>
+<p>Sampai jumpa di hotel kami!</p>
+{% endblock %}

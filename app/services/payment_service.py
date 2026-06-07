@@ -5,7 +5,8 @@ from fastapi import HTTPException, status
 from app.models.payment import Payment, PaymentStatus
 from app.models.booking import Booking, BookingStatus
 from app.schemas.payment import PaymentCreate
-
+from app.tasks.email_tasks import send_payment_receipt
+from app.models.guest import Guest
 
 class PaymentService:
 
@@ -73,6 +74,18 @@ class PaymentService:
 
         await db.flush()
         await db.refresh(payment)
+        guest_result = await db.execute(
+        select(Guest).where(Guest.id == booking.guest_id)
+        )
+        guest = guest_result.scalar_one()
+
+        send_payment_receipt.delay({
+            "guest_name": guest.name,
+            "guest_email": guest.email,
+            "booking_code": booking.booking_code,
+            "payment_method": payment.payment_method.value,
+            "amount": float(payment.amount),
+        })
         return payment
 
 

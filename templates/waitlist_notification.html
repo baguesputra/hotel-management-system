@@ -1,0 +1,26 @@
+{% extends "base_email.html" %}
+{% block content %}
+<p>Halo <strong>{{ guest_name }}</strong>,</p>
+<p>Kabar baik! Kamar yang Anda tunggu sudah tersedia.</p>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="label">Kamar</span>
+    <span class="value">{{ room_number }} ({{ room_type }})</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Check-in</span>
+    <span class="value">{{ check_in_date }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Check-out</span>
+    <span class="value">{{ check_out_date }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Berlaku Hingga</span>
+    <span class="value">{{ expires_at }}</span>
+  </div>
+</div>
+
+<p>⚠️ Penawaran ini hanya berlaku <strong>24 jam</strong>. Segera lakukan booking sebelum kamar diambil orang lain.</p>
+{% endblock %}

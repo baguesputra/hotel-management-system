@@ -1,12 +1,14 @@
 from celery import Celery
 from app.core.config import settings
+from celery.schedules import crontab
 
 celery_app = Celery(
     "hotel",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
     include=[
-        "app.tasks.sample_tasks",  # tambah di sini setiap ada module tasks baru
+        "app.tasks.sample_tasks",  
+        "app.tasks.email_tasks", 
     ],
 )
 
@@ -21,3 +23,10 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,   # worker ambil 1 task per worker, tidak greedy
     result_expires=3600,            # result disimpan 1 jam di Redis
 )
+
+celery_app.conf.beat_schedule = {
+    "send-booking-reminders-daily": {
+        "task": "tasks.send_daily_reminders",
+        "schedule": crontab(hour=8, minute=0),  # setiap hari jam 08.00
+    },
+}

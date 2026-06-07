@@ -1,0 +1,28 @@
+
+{% extends "base_email.html" %}
+{% block content %}
+<p>Halo <strong>{{ guest_name }}</strong>,</p>
+<p>Ini adalah pengingat bahwa Anda memiliki jadwal check-in <strong>besok</strong>.</p>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="label">Kode Booking</span>
+    <span class="value">{{ booking_code }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Kamar</span>
+    <span class="value">{{ room_number }} ({{ room_type }})</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Check-in</span>
+    <span class="value">{{ check_in_date }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Check-out</span>
+    <span class="value">{{ check_out_date }}</span>
+  </div>
+</div>
+
+<p>Pastikan Anda membawa identitas diri saat check-in.</p>
+<p>Sampai jumpa besok! 👋</p>
+{% endblock %}

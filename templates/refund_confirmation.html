@@ -1,0 +1,31 @@
+{% extends "base_email.html" %}
+{% block content %}
+<p>Halo <strong>{{ guest_name }}</strong>,</p>
+<p>Pembatalan booking Anda telah diproses. Berikut detail refund:</p>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="label">Kode Booking</span>
+    <span class="value">{{ booking_code }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Alasan Pembatalan</span>
+    <span class="value">{{ reason or "-" }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Persentase Refund</span>
+    <span class="value">{{ refund_percentage }}%</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Jumlah Refund</span>
+    <span class="value">Rp {{ "{:,.0f}".format(refund_amount) }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Status Refund</span>
+    <span class="value">{{ refund_status }}</span>
+  </div>
+</div>
+
+<p>Refund akan diproses dalam 3-5 hari kerja.</p>
+<p>Terima kasih atas pengertian Anda.</p>
+{% endblock %}

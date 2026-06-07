@@ -7,7 +7,8 @@ from fastapi import HTTPException, status
 from app.models.cancellation import Cancellation, RefundStatus
 from app.models.booking import Booking, BookingStatus
 from app.schemas.cancellation import CancellationCreate
-
+from app.tasks.email_tasks import send_refund_confirmation
+from app.models.guest import Guest
 
 class CancellationService:
 
@@ -93,6 +94,20 @@ class CancellationService:
             )
         cancellation.refund_status = RefundStatus.APPROVED
         await db.flush()
+        guest_result = await db.execute(
+        select(Guest).where(Guest.id == booking.guest_id)
+        )
+        guest = guest_result.scalar_one()
+
+        send_refund_confirmation.delay({
+            "guest_name": guest.name,
+            "guest_email": guest.email,
+            "booking_code": booking.booking_code,
+            "reason": cancellation.reason,
+            "refund_percentage": float(cancellation.refund_percentage),
+            "refund_amount": float(cancellation.refund_amount),
+            "refund_status": cancellation.refund_status.value,
+        })
         await db.refresh(cancellation)
         return cancellation
 

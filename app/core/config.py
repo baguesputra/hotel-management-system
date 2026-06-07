@@ -24,6 +24,14 @@ class Settings(BaseSettings):
     celery_broker_url: str
     celery_result_backend: str
 
+    # Email
+    mail_server: str
+    mail_port: int = 587
+    mail_username: str
+    mail_password: str
+    mail_from: str
+    mail_from_name: str = "Hotel Management System"
+
     @property
     def database_url(self) -> str:
         return (

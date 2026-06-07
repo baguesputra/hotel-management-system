@@ -11,7 +11,9 @@ from app.models.room import Room, RoomStatus
 from app.schemas.booking import BookingCreate
 from app.services.room_service import room_service
 from app.services.pricing_service import pricing_service
-
+from app.tasks.email_tasks import send_booking_confirmation
+from app.models.guest import Guest
+from app.tasks.email_tasks import send_check_in_welcome
 
 class BookingService:
 
@@ -66,9 +68,36 @@ class BookingService:
             special_requests=data.special_requests,
             status=BookingStatus.PENDING,
         )
+
         db.add(booking)
         await db.flush()
         await db.refresh(booking)
+
+        # load relasi guest dan room untuk data email
+        guest_result = await db.execute(
+            select(Guest).where(Guest.id == booking.guest_id)
+        )
+        guest = guest_result.scalar_one()
+
+        room_result_email = await db.execute(
+            select(Room).where(Room.id == booking.room_id)
+        )
+        room_email = room_result_email.scalar_one()
+
+        # trigger email task
+        send_booking_confirmation.delay({
+            "guest_name": guest.name,
+            "guest_email": guest.email,
+            "booking_code": booking.booking_code,
+            "room_number": room_email.room_number,
+            "room_type": room_email.room_type.value,
+            "check_in_date": str(booking.check_in_date),
+            "check_out_date": str(booking.check_out_date),
+            "total_nights": booking.total_nights,
+            "total_amount": float(booking.total_amount),
+            "status": booking.status.value,
+        })
+
         return booking
 
     async def get_all(self, db: AsyncSession) -> list[Booking]:
@@ -115,6 +144,18 @@ class BookingService:
 
         await db.flush()
         await db.refresh(booking)
+        guest_result = await db.execute(
+        select(Guest).where(Guest.id == booking.guest_id)
+        )
+        guest = guest_result.scalar_one()
+
+        send_check_in_welcome.delay({
+            "guest_name": guest.name,
+            "guest_email": guest.email,
+            "room_number": room.room_number,
+            "check_out_date": str(booking.check_out_date),
+            "total_nights": booking.total_nights,
+        })
         return booking
 
     async def check_out(self, db: AsyncSession, booking_id: UUID) -> Booking:

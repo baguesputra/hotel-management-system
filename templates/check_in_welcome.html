@@ -1,0 +1,23 @@
+{% extends "base_email.html" %}
+{% block content %}
+<p>Halo <strong>{{ guest_name }}</strong>,</p>
+<p>Selamat datang di hotel kami! Check-in Anda telah berhasil diproses.</p>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="label">Kamar</span>
+    <span class="value">{{ room_number }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Check-out</span>
+    <span class="value">{{ check_out_date }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Jumlah Malam</span>
+    <span class="value">{{ total_nights }} malam</span>
+  </div>
+</div>
+
+<p>Jika ada yang bisa kami bantu, jangan ragu untuk menghubungi resepsionis.</p>
+<p>Selamat menikmati masa menginap Anda! 🌟</p>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base_email.html" %}
+{% block content %}
+<p>Halo <strong>{{ guest_name }}</strong>,</p>
+<p>Pembayaran Anda telah kami terima. Berikut detail pembayaran:</p>
+
+<div class="info-box">
+  <div class="info-row">
+    <span class="label">Kode Booking</span>
+    <span class="value">{{ booking_code }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Metode Pembayaran</span>
+    <span class="value">{{ payment_method }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Jumlah Dibayar</span>
+    <span class="value">Rp {{ "{:,.0f}".format(amount) }}</span>
+  </div>
+  <div class="info-row">
+    <span class="label">Status</span>
+    <span class="value">✅ LUNAS</span>
+  </div>
+</div>
+
+<p>Booking Anda sudah terkonfirmasi. Kami menantikan kedatangan Anda!</p>
+{% endblock %}
