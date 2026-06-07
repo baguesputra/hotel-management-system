@@ -1,6 +1,6 @@
 import uuid
 import enum
-from sqlalchemy import Column, String, Integer, Numeric, Text, Enum, Boolean
+from sqlalchemy import Column, String, Integer, Numeric, Text, Enum, Boolean,  ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db.base import Base
@@ -52,7 +52,7 @@ class RoomPricing(Base):
     __tablename__ = "room_pricings"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    room_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    room_id = Column(UUID(as_uuid=True), ForeignKey("rooms.id"), nullable=False, index=True)
     season_type = Column(Enum(SeasonType), nullable=False)
     price_multiplier = Column(Numeric(4, 2), nullable=False, default=1.0)
     start_date = Column(String(10), nullable=False)  # format: MM-DD
