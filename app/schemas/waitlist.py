@@ -28,7 +28,28 @@ class WaitlistResponse(BaseModel):
     notified_at: datetime | None
     expires_at: datetime | None
     notes: str | None
-    position: int | None = None  # posisi di antrian, dihitung dinamis
+    position: int | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class WaitlistListResponse(BaseModel):
+    """Response untuk list waitlist per room."""
+    id: UUID
+    guest_id: UUID
+    room_id: UUID
+    check_in_date: date
+    check_out_date: date
+    status: WaitlistStatus
+    position: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class WaitlistTriggerRequest(BaseModel):
+    """Request untuk manual trigger notifikasi."""
+    room_id: UUID
+    check_in_date: date
+    check_out_date: date
