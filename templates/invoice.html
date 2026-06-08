@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #333;
+      padding: 40px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #1a3c5e;
+    }
+    .hotel-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a3c5e;
+    }
+    .hotel-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .invoice-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1a3c5e;
+      text-align: right;
+    }
+    .invoice-meta {
+      text-align: right;
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .section {
+      margin-bottom: 30px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .guest-info p {
+      margin: 3px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    thead {
+      background-color: #1a3c5e;
+      color: white;
+    }
+    th {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 13px;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 13px;
+    }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .total-section {
+      margin-left: auto;
+      width: 300px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .total-row.grand-total {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1a3c5e;
+      border-top: 3px solid #1a3c5e;
+      border-bottom: none;
+      margin-top: 5px;
+      padding-top: 10px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="hotel-name">🏨 Hotel Management System</div>
+      <div class="hotel-info">
+        Jl. Contoh No. 123, Jakarta<br>
+        Tel: (021) 123-4567 | Email: info@hotel.com
+      </div>
+    </div>
+    <div>
+      <div class="invoice-title">INVOICE</div>
+      <div class="invoice-meta">
+        No: {{ booking_code }}<br>
+        Tanggal: {{ invoice_date }}<br>
+        Status: <span class="status-badge">LUNAS</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tagihan Kepada</div>
+    <div class="guest-info">
+      <p><strong>{{ guest_name }}</strong></p>
+      <p>{{ guest_email }}</p>
+      {% if guest_phone %}<p>{{ guest_phone }}</p>{% endif %}
+      {% if guest_address %}<p>{{ guest_address }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Detail Menginap</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Deskripsi</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Malam</th>
+          <th>Harga/Malam</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            Kamar {{ room_number }}<br>
+            <small style="color:#666">{{ room_type | title }}</small>
+          </td>
+          <td>{{ check_in_date }}</td>
+          <td>{{ check_out_date }}</td>
+          <td>{{ total_nights }}</td>
+          <td>Rp {{ "{:,.0f}".format(price_per_night) }}</td>
+          <td>Rp {{ "{:,.0f}".format(total_amount) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="total-section">
+      <div class="total-row">
+        <span>Subtotal</span>
+        <span>Rp {{ "{:,.0f}".format(total_amount) }}</span>
+      </div>
+      <div class="total-row">
+        <span>Pajak (0%)</span>
+        <span>Rp 0</span>
+      </div>
+      <div class="total-row grand-total">
+        <span>Total</span>
+        <span>Rp {{ "{:,.0f}".format(total_amount) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Informasi Pembayaran</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Metode Pembayaran</th>
+          <th>Tanggal Bayar</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ payment_method | title }}</td>
+          <td>{{ payment_date }}</td>
+          <td><span class="status-badge">LUNAS</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <p>Terima kasih telah menginap di Hotel Management System.</p>
+    <p>Invoice ini digenerate otomatis pada {{ invoice_date }}.</p>
+  </div>
+</body>
+</html>

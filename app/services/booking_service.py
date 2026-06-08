@@ -14,6 +14,7 @@ from app.services.pricing_service import pricing_service
 from app.tasks.email_tasks import send_booking_confirmation
 from app.models.guest import Guest
 from app.tasks.email_tasks import send_check_in_welcome
+from app.tasks.report_tasks import generate_invoice
 
 class BookingService:
 
@@ -174,6 +175,7 @@ class BookingService:
 
         await db.flush()
         await db.refresh(booking)
+        generate_invoice.delay(str(booking.id))
         return booking
 
 

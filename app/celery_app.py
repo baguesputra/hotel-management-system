@@ -46,3 +46,31 @@ celery_app = Celery(
         "app.tasks.waitlist_tasks",  # ← baru
     ],
 )
+
+celery_app = Celery(
+    "hotel",
+    broker=settings.celery_broker_url,
+    backend=settings.celery_result_backend,
+    include=[
+        "app.tasks.sample_tasks",
+        "app.tasks.email_tasks",
+        "app.tasks.refund_tasks",
+        "app.tasks.waitlist_tasks",
+        "app.tasks.report_tasks",    # ← tambahkan
+    ],
+)
+
+celery_app.conf.beat_schedule = {
+    "send-booking-reminders-daily": {
+        "task": "tasks.send_daily_reminders",
+        "schedule": crontab(hour=8, minute=0),
+    },
+    "expire-waitlist-entries-hourly": {
+        "task": "tasks.expire_waitlist_entries",
+        "schedule": crontab(minute=0),
+    },
+    "generate-monthly-report": {             # ← tambahkan
+        "task": "tasks.generate_monthly_report",
+        "schedule": crontab(day_of_month=1, hour=7, minute=0),
+    },
+}
