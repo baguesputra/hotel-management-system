@@ -1,5 +1,6 @@
 import logging
 from app.celery_app import celery_app
+from app.tasks.base import BaseTaskWithRetry
 
 logger = logging.getLogger(__name__)
 
@@ -7,6 +8,7 @@ logger = logging.getLogger(__name__)
 @celery_app.task(
     bind=True,
     name="tasks.generate_invoice",
+    base=BaseTaskWithRetry,
     max_retries=3,
     default_retry_delay=60,
 )
@@ -63,7 +65,7 @@ def generate_invoice(self, booking_id: str) -> dict:
             }
 
     except Exception as exc:
-        logger.error(f"Gagal generate invoice: {exc}")
+        countdown = self.get_retry_countdown(self.request.retries)
         raise self.retry(exc=exc)
 
 
